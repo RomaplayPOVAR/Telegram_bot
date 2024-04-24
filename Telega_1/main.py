@@ -1,13 +1,8 @@
 import os
-import sys
-import logging
 from sympy import solve, parse_expr
 from sympy.parsing.sympy_parser import standard_transformations, implicit_multiplication_application
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, CallbackQueryHandler
-from telegram._message import PhotoSize
 from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-
-a = PhotoSize('pictures/ava.jpeg', 'jpeg', 1280, 698)
 
 # from my_token import BOT_TOKEN # '6649778454:AAFsLP_IXCjqEnSl9guLoErjdAkn3cjyL8g'
 
@@ -37,11 +32,7 @@ def passage(file_name, folder):
 
 
 async def echo(update, context):
-    msg = update.message
-    if msg.text == '123321':
-        await msg.reply_text('qwerty')
-    else:
-        await update.message.reply_text('404 - not found')
+    await update.message.reply_text('404 - not found')
 
 
 async def test(update, context):
