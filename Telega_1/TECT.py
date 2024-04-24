@@ -19,7 +19,10 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 
 async def echo(update, context):
-    await update.message.reply_text('404 - not found')
+    if update.message.text == '123321':
+        await update.message.reply_text('qwerty')
+    else:
+        await update.message.reply_text('404 - not found')
 
 
 async def start(update, context):
