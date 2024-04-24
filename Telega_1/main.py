@@ -1,4 +1,5 @@
 import os
+import requests
 from sympy import solve, parse_expr
 from sympy.parsing.sympy_parser import standard_transformations, implicit_multiplication_application
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, CallbackQueryHandler
@@ -174,6 +175,14 @@ async def stop(update, context):
     await update.message.reply_text('Прерывание...')
     return ConversationHandler.END
 
+#--------------------------------------------------------------
+
+async def money_info(update, context):
+    YOUR_API_KEY = "cecd51a2ca8344ed8451ed6bff04a379"
+    data = requests.get('https://openexchangerates.org/api/latest.json?app_id="cecd51a2ca8344ed8451ed6bff04a379"&base=USD&symbols=RUB').json
+    await update.message.reply_text(f"BEHAPA_BOT Даёт курс валют: USD {data['rates']['RUB']}")
+
+#---------------------------------------------------------------
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
@@ -210,6 +219,7 @@ def main():
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help))
     app.add_handler(CommandHandler('unset', unset))
+    app.add_handler(CommandHandler('money_info', money_info)
     app.add_handler(CommandHandler('key', update_keyboard))
     app.add_handler(CommandHandler('stop', stop))
     app.add_handler((CallbackQueryHandler(test)))
