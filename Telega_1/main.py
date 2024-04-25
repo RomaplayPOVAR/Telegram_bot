@@ -219,7 +219,7 @@ def main():
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help))
     app.add_handler(CommandHandler('unset', unset))
-    app.add_handler(CommandHandler('money_info', money_info)
+    app.add_handler(CommandHandler('money_info', money_info))
     app.add_handler(CommandHandler('key', update_keyboard))
     app.add_handler(CommandHandler('stop', stop))
     app.add_handler((CallbackQueryHandler(test)))
