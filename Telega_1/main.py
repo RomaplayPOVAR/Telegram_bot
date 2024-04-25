@@ -9,8 +9,8 @@ from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMa
 
 BOT_TOKEN = '6649778454:AAFsLP_IXCjqEnSl9guLoErjdAkn3cjyL8g'
 
-reply_keyboard = [['Посчитать выражение', 'Решить уравнение'],
-                  ['Установить таймер', 'Сбросить таймер']]
+reply_keyboard = [['/calc', '/eq'],
+                  ['/set', '/stop']]
 
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
@@ -18,7 +18,6 @@ one_key = InlineKeyboardMarkup([[InlineKeyboardButton('TECT', callback_data='cal
 
 
 async def callback(call, context):
-    print(call.callback_query.message)
     if call.callback_query.data == 'exit':
         await call.callback_query.message.reply_text('Завершение...')
         exit()
@@ -257,7 +256,6 @@ def main():
     app.add_handler(CommandHandler('stop', stop))
     app.add_handler(CommandHandler('scr', scr_shot))
     app.add_handler(CommandHandler('1', get_click))
-    app.add_handler((CallbackQueryHandler(test)))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
     app.add_handler(text_handler)
     print('Run')
