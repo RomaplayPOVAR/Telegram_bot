@@ -1,23 +1,43 @@
 import os
+import requests
+from time import sleep
+from pyautogui import screenshot, click, moveTo
 from sympy import solve, parse_expr
 from sympy.parsing.sympy_parser import standard_transformations, implicit_multiplication_application
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, CallbackQueryHandler
 from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
-# from my_token import BOT_TOKEN # '6649778454:AAFsLP_IXCjqEnSl9guLoErjdAkn3cjyL8g'
-
 BOT_TOKEN = '6649778454:AAFsLP_IXCjqEnSl9guLoErjdAkn3cjyL8g'
 
-# logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-#
-# logger = logging.getLogger(__name__)
-
-reply_keyboard = [['/calc', '/eq'],
-                  ['/set', '/stop']]
+reply_keyboard = [['Посчитать выражение', 'Решить уравнение'],
+                  ['Установить таймер', 'Сбросить таймер']]
 
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 one_key = InlineKeyboardMarkup([[InlineKeyboardButton('TECT', callback_data='call_me')]])
+
+
+async def callback(call, context):
+    print(call.callback_query.message)
+    if call.callback_query.data == 'exit':
+        await call.callback_query.message.reply_text('Завершение...')
+        exit()
+    elif call.callback_query.data == 'not_exit':
+        await call.callback_query.message.reply_text('Отмена.')
+
+
+async def ex(update, context):
+    if update.message.chat.username in [i.name for i in
+                                        os.scandir('C:/Users/User/PycharmProjects/Telegram/Telega_1/users_data')]:
+        file = open(f'C:/Users/User/PycharmProjects/Telegram/Telega_1/users_data/'
+                    f'{update.message.chat.username}/data.txt').read().split('\n')
+        if file[0] == 'Admin':
+            await update.message.reply_text('Вы уверены?',
+                                            reply_markup=InlineKeyboardMarkup(
+                                                [[InlineKeyboardButton('Да', callback_data='exit'),
+                                                  InlineKeyboardButton('Нет', callback_data='not_exit')]]))
+        else:
+            await update.message.reply_text('Отказано в доступе...')
 
 
 def passage(file_name, folder):
@@ -26,17 +46,35 @@ def passage(file_name, folder):
             try:
                 if element.name == file_name:
                     yield folder
-            except: ...
+            except:
+                ...
         else:
             yield from passage(file_name, element.path)
 
 
+async def get_click(update, context):
+    if update.message.chat.username == 'TYPUCT_C_MAPCA':
+        pos = [int(i) for i in update.message.text[update.message.text.index('.') + 1:].split('.')]
+        x, y = pos[0], pos[1]
+        moveTo(x, y)
+        click(button='left' if pos[2] else 'right')
+        sleep(0.5)
+        await scr_shot(update, context)
+
+
+async def scr_shot(update, context):
+    if update.message.chat.username == 'TYPUCT_C_MAPCA':
+        screenshot('scr.png')
+        await context.bot.send_photo(chat_id=update.message.chat.id, photo=open('scr.png', 'rb'))
+
+
 async def echo(update, context):
+    msg = update.message.text
+    if msg == 'Посчитать выражение':
+        await calculate(update, context)
+    elif msg == 'Решить уравнение':
+        await equation(update, context)
     await update.message.reply_text('404 - not found')
-
-
-async def test(update, context):
-    print('Something')
 
 
 async def ans_file(update, context):
@@ -143,9 +181,6 @@ async def unset(update, context):
     await update.message.reply_text(text)
 
 
-# -----------------------------------------------------------
-
-
 async def ans_eq(update, context):
     await update.message.reply_text(f'Введите уравнение:')
     return 1
@@ -173,6 +208,13 @@ async def update_keyboard(update, context):
 async def stop(update, context):
     await update.message.reply_text('Прерывание...')
     return ConversationHandler.END
+
+
+async def money_info(update, context):
+    YOUR_API_KEY = "cecd51a2ca8344ed8451ed6bff04a379"
+    data = requests.get(
+        'https://openexchangerates.org/api/latest.json?app_id="cecd51a2ca8344ed8451ed6bff04a379"&base=USD&symbols=RUB').json
+    await update.message.reply_text(f"BEHAPA_BOT Даёт курс валют: USD {data['rates']['RUB']}")
 
 
 def main():
@@ -210,8 +252,11 @@ def main():
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help))
     app.add_handler(CommandHandler('unset', unset))
+    app.add_handler(CommandHandler('money_info', money_info))
     app.add_handler(CommandHandler('key', update_keyboard))
     app.add_handler(CommandHandler('stop', stop))
+    app.add_handler(CommandHandler('scr', scr_shot))
+    app.add_handler(CommandHandler('1', get_click))
     app.add_handler((CallbackQueryHandler(test)))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
     app.add_handler(text_handler)
