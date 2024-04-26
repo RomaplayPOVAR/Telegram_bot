@@ -162,7 +162,8 @@ async def send_file(update, context):
 
 
 async def start(update, context):
-    await update.message.reply_text(f'BEHAPA_BOT приветствует вас, {update.message.chat.first_name}!')
+    await update.message.reply_text(f'BEHAPA_BOT приветствует вас, {update.message.chat.first_name}!',
+                                    reply_markup=markup)
 
 
 async def help(update, context):
@@ -250,9 +251,8 @@ async def stop(update, context):
 
 async def money_info(update, context):
     YOUR_API_KEY = "cecd51a2ca8344ed8451ed6bff04a379"
-    data = requests.get(
-        'https://openexchangerates.org/api/latest.json?app_id="cecd51a2ca8344ed8451ed6bff04a379"&base=USD&symbols=RUB').json
-    await update.message.reply_text(f"BEHAPA_BOT Даёт курс валют: USD {data['rates']['RUB']}")
+    data = requests.get(f'https://openexchangerates.org/api/latest.json?app_id="{YOUR_API_KEY}"&base=USD&symbols=RUB')
+    await update.message.reply_text(f"BEHAPA_BOT Даёт курс валют: USD {round(data.json()['rates']['RUB'], 2)}")
 
 
 def main():
